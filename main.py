@@ -12,6 +12,7 @@ import buttons
 import wifi
 
 PORT = 4533
+ANY_ADDR = "0.0.0.0"
 
 container = None
 textcontainer = None
@@ -37,52 +38,108 @@ def processbuttons(data):
 
     print("readings buttons")
 
-def drawtext(con):
+def drawtext(con, status="searching for long range comms..."):
     con.clear()
     con.set_default_font(ugfx.FONT_NAME)
     con.text(0, 5, "SATTRACKER", ugfx.GREEN)
-    
-def sattracker():
 
+    con.set_default_font(ugfx.FONT_SMALL)
+    con.text(0, 50, status, ugfx.GREEN)
+
+#
+#  ___ ___ _ ___ _____ ___
+# (_-</ -_) '_\ V / _ (_-<
+# /__/\___|_|  \_/\___/__/
+#
+#
+# json:
+servoconfig = """
+{
+    "el_servo":
+    [
+        {
+            "pin":"1",
+            "limits":
+            [
+                "0",
+                "180"
+            ]
+        }
+    ]
+    "az_servo":
+    [
+        {
+            "pin":"2",
+            "limits":
+            [
+                "0",
+                "180"
+            ]
+        }
+        {
+            "pin":"4",
+            "limits":
+            [
+                "0",
+                "180"
+            ]
+        }
+    ]
+}
+"""
+
+
+def calibrateservos():
+    print("I am a servo")
+
+#           _               _           
+#  ___ __ _| |_ _ _ __ _ __| |_____ _ _ 
+# (_-</ _` |  _| '_/ _` / _| / / -_) '_|
+# /__/\__,_|\__|_| \__,_\__|_\_\___|_|  
+#
+#
+def sattracker():
     print("following a satellite")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket.settimeout(0.5)   #socket will block for most 0.5 seconds
+    s.bind((ANY_ADDR, PORT))
+    s.listen(1)
     while True:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((TCP_IP, TCP_PORT))
-        s.listen(1)
+        sleep(0.1)           #screen will update at most 10Hz
 
         conn, addr = s.accept()
-        print 'Connection address:', addr
+        print 'Connection from:', addr
 
-        data = conn.recv(BUFFER_SIZE)
-        if not data:
-            break
+        while connected:
+            data = conn.recv(BUFFER_SIZE)
+            if not data:
+                break
 
-        print("received data:", data)
+            print("received data:", data)
 
-        if data == "p\n":
-            print("pos query at az:{} el: {}", az, el);
+            if data == "p\n":
+                print("pos query when at az:{} el: {}", current_az, current_el);
 
-            response = "{}\n{}\n".format(az, el)
-            print("responing with: \n {}".format(response))
-            conn.send(response)
-        elif data.startswith("P "):
-            values = data.split("  ")
-            print(values)
-            az = float(values[1])
-            el = float(values[2])
+                response = "{}\n{}\n".format(az, el)
+                print("responing with: \n {}".format(response))
+                conn.send(response)
+            elif data.startswith("P "):
+                values = data.split("  ")
+                print(values)
+                target_az = float(values[1])
+                target_el = float(values[2])
 
-            print("moving to az:{} el: {}".format( az, el));
+                print("moving to az:{} el: {}".format(target_az, target_el));
 
-            conn.send(" ")
-        elif data == "q\n":
-            print("close command, shutting down")
-            conn.close()
-            break
-        else:
-            print("unknown command, closing socket")
-            conn.close()
-            break
-
+                conn.send(" ")
+            elif data == "q\n":
+                print("close command, shutting down")
+                conn.close()
+                break
+            else:
+                print("unknown command, closing socket")
+                conn.close()
+                break
 
 #if __name__ == "__main__":
 print("starting")
