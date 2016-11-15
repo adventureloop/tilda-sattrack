@@ -49,7 +49,6 @@ def drawtext(status="Searching for long range comms..."):
     ugfx.set_default_font(ugfx.FONT_SMALL)
     ugfx.text(0, 50, status, ugfx.RED)
 
-
     posstring = "AZ: {} EL: {}".format(current_az, current_el)
     ugfx.set_default_font(ugfx.FONT_SMALL)
     ugfx.text(0, 70, posstring, ugfx.YELLOW)
@@ -61,7 +60,6 @@ def drawtext(status="Searching for long range comms..."):
 #
 #
 def calibrateservos():
-
     global az
     global el
 
@@ -78,7 +76,6 @@ def calibrateservos():
 #
 #
 def sattracker():
-
     global current_az
     global current_el
 
@@ -86,8 +83,6 @@ def sattracker():
     global target_el 
 
     calibrateservos()
-    
-    print("following a satellite")
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -98,9 +93,7 @@ def sattracker():
     connected = False
 
     while True:
-        #time.sleep(0.1)           #screen will update at most 10Hz
-
-        status = "waiting for connection"
+        status = "Searching for long range comms..."
         conn, addr = s.accept()
         if conn:
             status = 'Connection from {}:{}'.format(addr[0], addr[1])
@@ -146,8 +139,6 @@ def sattracker():
                 break
 
 #if __name__ == "__main__":
-print("starting")
-
 buttons.init()
 ugfx.init()
 ugfx.clear(ugfx.BLACK)
